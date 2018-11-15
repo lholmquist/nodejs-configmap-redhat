@@ -45,7 +45,6 @@ app.use('/api/greeting', (request, response) => {
     response.status(500);
     return response.send({content: 'no config map'});
   }
-
   logger.debug('Replying to request, parameter={}', name);
   return response.send({content: message.replace(/%s/g, name)});
 });
@@ -57,6 +56,7 @@ probe(app);
 // If new configMap is found, then set new log level
 setInterval(() => {
   retrieveConfigfMap().then(config => {
+    console.log('got config', config);
     if (!config) {
       message = null;
       return;
@@ -74,6 +74,7 @@ setInterval(() => {
       }
     }
   }).catch(err => {
+    console.log('ERROR:', err);
     logger.error('Error getting config', err);
   });
 }, 2000);
@@ -91,8 +92,10 @@ function retrieveConfigfMap () {
   };
 
   return openshiftRestClient(settings).then(client => {
+    console.log('success with getting openshit rest client');
     const configMapName = 'app-config';
     return client.configmaps.find(configMapName).then(configMap => {
+      console.log('success with configmaps.find');
       const configMapParsed = jsyaml.safeLoad(configMap.data['app-config.yml']);
       return configMapParsed;
     });
